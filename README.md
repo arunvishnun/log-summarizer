@@ -1,5 +1,5 @@
 # Log Summarizer
-The parses program log lines and summarizes with 1 minute interval.
+The program parses log file and summarizes with 1 minute interval.
 
 ## Requirements
   - java version "1.8.0_144"
