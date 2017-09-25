@@ -42,6 +42,7 @@ public final class Util {
 		String currentTimestamp = null;
 		parts = getLogParts(logLine);
 		currentTimestamp = parts[0].split("\\+")[0];
+		
 		return Util.formatDate(currentTimestamp, resolution);
 	}
 
@@ -67,22 +68,11 @@ public final class Util {
 				outPutList.add(Integer.toString(matrix.getMax()));
 				
 				writeLine(writer, outPutList);
-				/*
-				System.out.println(list.getCurrentWindow() 
-						+ "," + list.getHost() 
-						+ "," + matrix.getCount() 
-						+ "," + matrix.getTotalServiceTime()
-						+ "," + matrix.getMin()
-						+ "," + matrix.getMax()
-						);*/
-				
-				
 			}
 			writer.flush();
 			writer.close();
 
 		} catch (IOException e) {
-			
 			e.printStackTrace();
 		}
 	}
@@ -102,6 +92,5 @@ public final class Util {
 		}
 		sb.append("\n");
 		w.append(sb.toString());
-
 	}
 }

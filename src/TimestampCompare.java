@@ -1,7 +1,7 @@
 
 import java.util.Comparator;
 
-//Class to compare Timestamp by host
+//Class to compare and sort Timestamp by host
 public class TimestampCompare implements Comparator<Timestamp> {
 
 	@Override

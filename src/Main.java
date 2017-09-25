@@ -1,6 +1,4 @@
 import java.io.*;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +40,7 @@ public class Main {
 			Timestamp timestamp = new Timestamp(Util.formatDate(DEFAULT_DATE,
 					resolution), host);
 
-			List<String> hostList = null;
+			List<String> hostList = new ArrayList<String>();
 			while (sc.hasNextLine()) {
 
 				line = sc.nextLine();
@@ -87,11 +85,10 @@ public class Main {
 						aggregationMatrix.put(newWindow + host, matrix);
 						sortedList.add(timestamp);
 					} else {
-						// Host already added in the same window; Perform
-						// aggregation operations.
-
-						// Get from aggregationMatrix and set it back after
-						// aggregation.
+						// Host already added in the same window; Perform aggregation 
+						// operations.
+						
+						// Get from aggregationMatrix and set it back after aggregation.
 						matrix = aggregationMatrix.get(newWindow + host);
 						matrix.setTotalServiceTime(matrix.getTotalServiceTime() + service);
 						matrix.setCount(matrix.getCount() + 1);
@@ -100,11 +97,9 @@ public class Main {
 						
 						aggregationMatrix.put(newWindow + host, matrix);
 					}
+					
 				} else {
-
-					hostList = new ArrayList<String>();
-					hostList.add(host);
-
+					
 					timestamp = new Timestamp(newWindow, host);
 
 					matrix = new AggregatedLogMatrix();
@@ -117,14 +112,24 @@ public class Main {
 					
 					sortedList = new ArrayList<Timestamp>();
 					sortedList.add(timestamp);
+					
+					for(String h: hostList) {
+						if(!h.equals(host)) {
+							sortedList.add(new Timestamp(newWindow, h));
+							aggregationMatrix.put(newWindow + h, new AggregatedLogMatrix());
+						}
+					}
+				
+					if (!hostList.contains(host)) {
+						hostList.add(host); 
+					}
+					sortedList.sort(timestampCompare);
 				}
 			}
-
-			sortedList.sort(timestampCompare);
+			
 			logParser.addAll(sortedList);
 			Util.writeToCSV(logParser, aggregationMatrix, outputFile);
 
-			// note that Scanner suppresses exceptions
 			if (sc.ioException() != null) {
 				throw sc.ioException();
 			}
