@@ -1,4 +1,6 @@
 import java.io.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,21 +11,9 @@ public class Main {
 	private static final String DEFAULT_DATE = "1753-01-01T00:00:00";
 
 	public static void main(String[] args) throws IOException {
-
-//		long startTime = System.currentTimeMillis();
-		
 		String resolution = "60";
 		String outputFile = args[1];
 		readLogFile(args[0], outputFile, resolution);
-
-		/*
-		long endTime = System.currentTimeMillis();
-		long totalTime = endTime - startTime;
-
-		NumberFormat formatter = new DecimalFormat("#0.00000");
-		System.out.print("Execution time is "
-				+ formatter.format(totalTime / 1000d) + " seconds");
-		 */
 	}
 
 	public static void readLogFile(String filename, String outputFile, String resolution) throws IOException {
