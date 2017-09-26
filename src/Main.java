@@ -15,19 +15,17 @@ public class Main {
 	}
 
 	public static void readLogFile(String filename, String outputFile, String resolution) throws IOException {
-		String newWindow = null;
+		
 		String line;
 		String host = "";
-		
-		AggregatedLogMatrix matrix = null;
-		List<Timestamp> sortedList = new ArrayList<Timestamp>();
-		TimestampCompare timestampCompare = new TimestampCompare();
 
-		// Final object to be used for iteration and CSV creation.
-		List<Timestamp> logParser = new ArrayList<Timestamp>();
+		AggregatedLogMatrix matrix = null;
+
+		// Final object to be used for iteration and CSV creation.Contains Nodes that can be traversed inorder (sorted order) while writing to file.
+		AVLTree logParser = new AVLTree();
 
 		// Map with Key = timestamp + host; value = an AggregatedLogMatrix .
-		Map<String, AggregatedLogMatrix> aggregationMatrix = new HashMap<String, AggregatedLogMatrix>();
+		Map<String, AggregatedLogMatrix> aggregationMap = new HashMap<String, AggregatedLogMatrix>();
 
 		FileInputStream inputStream = null;
 		Scanner sc = null;
@@ -39,16 +37,20 @@ public class Main {
 			// Set a default current window to start with.
 			Timestamp timestamp = new Timestamp(Util.formatDate(DEFAULT_DATE,
 					resolution), host);
+			Timestamp root = timestamp;
 
 			List<String> hostList = new ArrayList<String>();
 			while (sc.hasNextLine()) {
 
 				line = sc.nextLine();
-				newWindow = Util.getCurrentTimestamp(line, resolution);
+				
+				String previousWindow = timestamp.getCurrentWindow();
+				String newWindow = Util.getCurrentTimestamp(line, resolution);
 
 				// Get host and service time for this log line.
 				String keyValuePairs[] = Util.getLogParts(line)[1].trim()
 						.split(" ");
+
 				int service = 0;
 				for (String pair : keyValuePairs) {
 					String[] entry = pair.split("=");
@@ -64,72 +66,37 @@ public class Main {
 								value.length() - 2));
 					}
 				}
-
-				String previousWindow = timestamp.getCurrentWindow();
-
-				// Check if the new timestamp in same window.
-				if (previousWindow.equals(newWindow)) {
-					// Logs are within the window.
-
-					// Check if current host is already available, otherwise add it.
-					if (!hostList.contains(host)) {
-						// Host is not available in the same window, so add it
-						// and create a new timestamp object and push it to log list
-						hostList.add(host);
-						
-						timestamp = new Timestamp(newWindow, host);
-						
-						matrix = new AggregatedLogMatrix();
-						matrix.setAll(service, 1, service, service);
-						
-						aggregationMatrix.put(newWindow + host, matrix);
-						sortedList.add(timestamp);
-					} else {
-						// Host already added in the same window; Perform aggregation 
-						// operations.
-						
-						// Get from aggregationMatrix and set it back after aggregation.
-						matrix = aggregationMatrix.get(newWindow + host);
-						matrix.setTotalServiceTime(matrix.getTotalServiceTime() + service);
-						matrix.setCount(matrix.getCount() + 1);
-						if(service < matrix.getMin()) matrix.setMin(service);
-						if(service > matrix.getMax()) matrix.setMax(service);
-						
-						aggregationMatrix.put(newWindow + host, matrix);
-					}
+				
+				/*for(String h: hostList) {
+					if(!h.equals(host)) logParser.root = logParser.insert(root, newWindow, h);
+				}*/
+				
+				if (aggregationMap.containsKey(newWindow + host)) {
+					matrix = aggregationMap.get(newWindow + host);
 					
+					matrix.setTotalServiceTime(matrix.getTotalServiceTime()
+							+ service);
+					matrix.setCount(matrix.getCount() + 1);
+					if (service < matrix.getMin())
+						matrix.setMin(service);
+					if (service > matrix.getMax())
+						matrix.setMax(service);
+
+					aggregationMap.put(newWindow + host, matrix);
 				} else {
-					
-					timestamp = new Timestamp(newWindow, host);
-
 					matrix = new AggregatedLogMatrix();
 					matrix.setAll(service, 1, service, service);
+					aggregationMap.put(newWindow + host, matrix);
 					
-					aggregationMatrix.put(newWindow + host, matrix);
-					
-					sortedList.sort(timestampCompare);
-					logParser.addAll(sortedList);
-					
-					sortedList = new ArrayList<Timestamp>();
-					sortedList.add(timestamp);
-					
-					for(String h: hostList) {
-						if(!h.equals(host)) {
-							sortedList.add(new Timestamp(newWindow, h));
-							aggregationMatrix.put(newWindow + h, new AggregatedLogMatrix());
-						}
-					}
-				
-					if (!hostList.contains(host)) {
-						hostList.add(host); 
-					}
-					sortedList.sort(timestampCompare);
+					// newWindow + host key is not availble in Map. ie Either new window or new host. So add it t
+					logParser.root = logParser.insert(root, newWindow, host);
 				}
+				
+				if(!hostList.contains(host)) hostList.add(host);
 			}
-			
-			logParser.addAll(sortedList);
-			Util.writeToCSV(logParser, aggregationMatrix, outputFile);
 
+			Util.createCSV(logParser.root, aggregationMap);
+			
 			if (sc.ioException() != null) {
 				throw sc.ioException();
 			}
@@ -143,4 +110,5 @@ public class Main {
 
 		}
 	}
+
 }

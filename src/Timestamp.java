@@ -2,6 +2,8 @@
 public class Timestamp {
 	private String currentWindow;
 	private String host;
+	public int height;
+	public Timestamp left, right; 
 	
 	// Set the current window and host.
 	public Timestamp(String currentWindow, String host) {

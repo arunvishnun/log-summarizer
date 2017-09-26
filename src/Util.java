@@ -45,37 +45,24 @@ public final class Util {
 		
 		return Util.formatDate(currentTimestamp, resolution);
 	}
+	
+	public static Date convertToDate(String date) {
+		SimpleDateFormat formatter = new SimpleDateFormat(DATEFORMAT);
+		Date newDate = null;
+		try {
+
+            newDate = formatter.parse(date);
+            
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+		return newDate;
+	}
 
 	public static String[] getLogParts(String logLine) {
 		return logLine.split("heroku\\[router\\]\\:");
 	}
 	
-	public static void writeToCSV(List<Timestamp> timestampList, Map<String, AggregatedLogMatrix> aggregationMatrix, String outputFile) {	
-		String csvFile = outputFile;
-		FileWriter writer;
-		try {
-			writer = new FileWriter(csvFile);
-			for(Timestamp list: timestampList) {
-				
-				AggregatedLogMatrix matrix = aggregationMatrix.get(list.getCurrentWindow() + list.getHost());
-				List<String> outPutList = new ArrayList<String>();
-				
-				outPutList.add(list.getCurrentWindow());
-				outPutList.add(list.getHost());
-				outPutList.add(Integer.toString(matrix.getCount()));
-				outPutList.add(Integer.toString(matrix.getTotalServiceTime()));
-				outPutList.add(Integer.toString(matrix.getMin()));
-				outPutList.add(Integer.toString(matrix.getMax()));
-				
-				writeLine(writer, outPutList);
-			}
-			writer.flush();
-			writer.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public static void writeLine(Writer w, List<String> values) throws IOException {
 
@@ -92,5 +79,46 @@ public final class Util {
 		}
 		sb.append("\n");
 		w.append(sb.toString());
+	}
+	
+	public static void createCSV(Timestamp t, Map<String, AggregatedLogMatrix> aggregationMatrix) {
+		String csvFile = "test.csv";
+		FileWriter writer;
+		try {
+			writer = new FileWriter(csvFile);
+			
+			inOrder(t, aggregationMatrix, writer);
+			
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void inOrder(Timestamp t, Map<String, AggregatedLogMatrix> aggregationMatrix, FileWriter writer) {
+		try {
+			if (t != null) {
+				AggregatedLogMatrix matrix = aggregationMatrix.get(t.getCurrentWindow() + t.getHost());
+				List<String> outPutList = new ArrayList<String>();
+				inOrder(t.left, aggregationMatrix, writer);
+				if (matrix != null) {
+					
+					outPutList.add(t.getCurrentWindow());
+					outPutList.add(t.getHost());
+					outPutList.add(Integer.toString(matrix.getCount()));
+					outPutList.add(Integer.toString(matrix.getTotalServiceTime()));
+					outPutList.add(Integer.toString(matrix.getMin()));
+					outPutList.add(Integer.toString(matrix.getMax()));
+
+					Util.writeLine(writer, outPutList);
+				}
+				inOrder(t.right, aggregationMatrix, writer);
+				
+			} 
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 }
