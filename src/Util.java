@@ -81,8 +81,8 @@ public final class Util {
 		w.append(sb.toString());
 	}
 	
-	public static void createCSV(Timestamp t, Map<String, AggregatedLogMatrix> aggregationMatrix) {
-		String csvFile = "test.csv";
+	public static void createCSV(Timestamp t, Map<String, AggregatedLogMatrix> aggregationMatrix, String filename) {
+		String csvFile = filename;
 		FileWriter writer;
 		try {
 			writer = new FileWriter(csvFile);

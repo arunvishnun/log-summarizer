@@ -11,7 +11,12 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		String resolution = "60";
 		String outputFile = args[1];
+		long startTime = System.currentTimeMillis();
+		
 		readLogFile(args[0], outputFile, resolution);
+		
+		long elapsedTime = System.currentTimeMillis() - startTime;
+	    System.out.println("Execution time in milliseconds: " + elapsedTime);
 	}
 
 	public static void readLogFile(String filename, String outputFile, String resolution) throws IOException {
@@ -37,19 +42,18 @@ public class Main {
 			// Set a default current window to start with.
 			Timestamp timestamp = new Timestamp(Util.formatDate(DEFAULT_DATE,
 					resolution), host);
-			Timestamp root = timestamp;
-
+			
+			
 			List<String> hostList = new ArrayList<String>();
+			String previousWindow = timestamp.getCurrentWindow();
 			while (sc.hasNextLine()) {
 
 				line = sc.nextLine();
 				
-				String previousWindow = timestamp.getCurrentWindow();
 				String newWindow = Util.getCurrentTimestamp(line, resolution);
 
 				// Get host and service time for this log line.
-				String keyValuePairs[] = Util.getLogParts(line)[1].trim()
-						.split(" ");
+				String keyValuePairs[] = Util.getLogParts(line)[1].trim().split(" ");
 
 				int service = 0;
 				for (String pair : keyValuePairs) {
@@ -67,10 +71,14 @@ public class Main {
 					}
 				}
 				
-				/*for(String h: hostList) {
-					if(!h.equals(host)) logParser.root = logParser.insert(root, newWindow, h);
-				}*/
-				
+				if(!previousWindow.equals(newWindow)) {
+					for(String h: hostList) {
+						logParser.root = logParser.insert(logParser.root, newWindow, h);
+						matrix = new AggregatedLogMatrix();
+						aggregationMap.put(newWindow + h, matrix);
+					}
+				}
+				previousWindow = newWindow;
 				if (aggregationMap.containsKey(newWindow + host)) {
 					matrix = aggregationMap.get(newWindow + host);
 					
@@ -89,13 +97,13 @@ public class Main {
 					aggregationMap.put(newWindow + host, matrix);
 					
 					// newWindow + host key is not availble in Map. ie Either new window or new host. So add it t
-					logParser.root = logParser.insert(root, newWindow, host);
+					logParser.root = logParser.insert(logParser.root, newWindow, host);
 				}
 				
 				if(!hostList.contains(host)) hostList.add(host);
 			}
 
-			Util.createCSV(logParser.root, aggregationMap);
+			Util.createCSV(logParser.root, aggregationMap, outputFile);
 			
 			if (sc.ioException() != null) {
 				throw sc.ioException();
