@@ -16,7 +16,7 @@ public class Main {
 		readLogFile(args[0], outputFile, resolution);
 		
 		long elapsedTime = System.currentTimeMillis() - startTime;
-	    System.out.println("Execution time in milliseconds: " + elapsedTime);
+		System.out.println("Execution time in milliseconds: " + elapsedTime);
 	}
 
 	public static void readLogFile(String filename, String outputFile, String resolution) throws IOException {
@@ -42,7 +42,6 @@ public class Main {
 			// Set a default current window to start with.
 			Timestamp timestamp = new Timestamp(Util.formatDate(DEFAULT_DATE,
 					resolution), host);
-			
 			
 			List<String> hostList = new ArrayList<String>();
 			String previousWindow = timestamp.getCurrentWindow();
@@ -96,7 +95,7 @@ public class Main {
 					matrix.setAll(service, 1, service, service);
 					aggregationMap.put(newWindow + host, matrix);
 					
-					// newWindow + host key is not availble in Map. ie Either new window or new host. So add it t
+					// newWindow + host key is not availble in Map. ie Either new window or new host. So add it.
 					logParser.root = logParser.insert(logParser.root, newWindow, host);
 				}
 				

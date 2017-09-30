@@ -63,7 +63,6 @@ public final class Util {
 		return logLine.split("heroku\\[router\\]\\:");
 	}
 	
-	
 	public static void writeLine(Writer w, List<String> values) throws IOException {
 
 		boolean first = true;
@@ -101,9 +100,10 @@ public final class Util {
 			if (t != null) {
 				AggregatedLogMatrix matrix = aggregationMatrix.get(t.getCurrentWindow() + t.getHost());
 				List<String> outPutList = new ArrayList<String>();
+				
 				inOrder(t.left, aggregationMatrix, writer);
+				
 				if (matrix != null) {
-					
 					outPutList.add(t.getCurrentWindow());
 					outPutList.add(t.getHost());
 					outPutList.add(Integer.toString(matrix.getCount()));
@@ -113,6 +113,7 @@ public final class Util {
 
 					Util.writeLine(writer, outPutList);
 				}
+				
 				inOrder(t.right, aggregationMatrix, writer);
 				
 			} 
