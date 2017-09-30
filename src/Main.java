@@ -84,7 +84,7 @@ public class Main {
 					matrix.setTotalServiceTime(matrix.getTotalServiceTime()
 							+ service);
 					matrix.setCount(matrix.getCount() + 1);
-					if (service < matrix.getMin())
+					if (service < matrix.getMin() || matrix.getMin() == 0)
 						matrix.setMin(service);
 					if (service > matrix.getMax())
 						matrix.setMax(service);
